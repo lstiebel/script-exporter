@@ -1,0 +1,5 @@
+FROM golang:1.10
+WORKDIR /go/src/script-exporter
+
+# install dependencies and testing library, compile binary
+CMD go get -d ./... && go get gopkg.in/check.v1 && make

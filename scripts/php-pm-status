@@ -1,0 +1,54 @@
+#!/bin/bash
+
+PID_FILE="/tmp/ppm.pid"
+SOCKET_PATH="/tmp/ppm"
+
+STATUS_RESPONSE="$(/ppm/vendor/bin/ppm status --socket-path=$SOCKET_PATH --pidfile=$PID_FILE)"
+
+result_php_pm_status_healthy="$(echo "$STATUS_RESPONSE" | grep status | cut -d" " -f2 | grep healthy &>/dev/null && printf "1" || printf "0")"
+result_php_pm_status_unhealthy="$(echo "$STATUS_RESPONSE" | grep status | cut -d" " -f2 | grep unhealthy &>/dev/null && printf "1" || printf "0")"
+result_php_pm_handled_requests="$(echo "$STATUS_RESPONSE" | grep handled_requests: | cut -d" " -f 2)"
+result_php_pm_workers_count_total="$(echo "$STATUS_RESPONSE" | grep total | cut -d":" -f 2 | cut -d" " -f2)"
+result_php_pm_workers_count_ready="$(echo "$STATUS_RESPONSE" | grep ready | cut -d":" -f 2 | cut -d" " -f2)"
+result_php_pm_workers_count_busy="$(echo "$STATUS_RESPONSE" | grep busy | cut -d":" -f 2 | cut -d" " -f2)"
+result_php_pm_workers_count_created="$(echo "$STATUS_RESPONSE" | grep created | cut -d":" -f 2 | cut -d" " -f2)"
+result_php_pm_workers_count_registered="$(echo "$STATUS_RESPONSE" | grep registered | cut -d":" -f 2 | cut -d" " -f2)"
+result_php_pm_workers_count_closed="$(echo "$STATUS_RESPONSE" | grep closed | cut -d":" -f 2 | cut -d" " -f2)"
+
+echo "\
+# HELP php_pm_status_healthy Healthy status for php-fpm, either 1 or 0
+# TYPE php_pm_status_healthy gauge
+php_pm_status_healthy $result_php_pm_status_healthy
+
+# HELP php_pm_status_unhealthy Unhealthy status for php-fpm, either 1 or 0
+# TYPE php_pm_status_unhealthy gauge
+php_pm_status_unhealthy $result_php_pm_status_unhealthy
+
+# HELP php_pm_handled_requests Counter of total handled requests
+# TYPE php_pm_handled_requests counter
+php_pm_handled_requests $result_php_pm_handled_requests
+
+# HELP php_pm_workers_count_total Number of worker processes running
+# TYPE php_pm_workers_count_total gauge
+php_pm_workers_count_total $result_php_pm_workers_count_total
+
+# HELP php_pm_workers_count_ready Number of worker processes ready
+# TYPE php_pm_workers_count_ready gauge
+php_pm_workers_count_ready $result_php_pm_workers_count_ready
+
+# HELP php_pm_workers_count_busy Number of worker processes busy
+# TYPE php_pm_workers_count_busy gauge
+php_pm_workers_count_busy $result_php_pm_workers_count_busy
+
+# HELP php_pm_workers_count_created Number of worker processes created
+# TYPE php_pm_workers_count_created gauge
+php_pm_workers_count_created $result_php_pm_workers_count_created
+
+# HELP php_pm_workers_count_registered Number of worker processes registered
+# TYPE php_pm_workers_count_registered gauge
+php_pm_workers_count_registererd $result_php_pm_workers_count_registered
+
+# HELP php_pm_workers_count_closed Number of worker processes closed
+# TYPE php_pm_workers_count_closed gauge
+php_pm_workers_count_closed $result_php_pm_workers_count_closed
+"

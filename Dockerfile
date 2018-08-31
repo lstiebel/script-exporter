@@ -1,12 +1,9 @@
-FROM golang:1.10
-WORKDIR /go/src/script-exporter
-COPY . .
-RUN CGO_ENABLED=0 GOOS=linux make
-
-FROM docker:17.11
+FROM alpine:3.8
 RUN apk add --no-cache bash ca-certificates openssl && update-ca-certificates
 WORKDIR /root/
-COPY --from=0 /go/src/script-exporter/script-exporter script-exporter.sh
-RUN chmod +x script-exporter.sh
 
-CMD /root/script-exporter.sh -script.path /root/scripts -web.listen-address :9661
+COPY script-exporter /bin/script-exporter
+COPY scripts/ /root/scripts
+RUN chmod +x /bin/script-exporter /root/scripts/*
+
+CMD /bin/script-exporter -script.path /root/scripts -web.listen-address :9661

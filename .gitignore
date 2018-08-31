@@ -1,2 +1,4 @@
 script-exporter
 dist
+src
+vendor
